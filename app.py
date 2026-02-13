@@ -9,6 +9,7 @@ from agents.prompt import SYSTEM_PROMPT_TEMPLATE
 from components.renderer import render_gui_parts
 from components.session import get_session_history, set_session_history, delete_chat_history
 from components.init_page import render_init_page, SUGGESTIONS
+from components.stream import process_stream
 
 # .envファイルから環境変数を読み込む
 load_dotenv()
@@ -104,60 +105,8 @@ if len(chat_history["display"]) > 0:
                 if ai_question_in_tool:
                     st.chat_message("ai").write(ai_question_in_tool)
 
-# debug用
-with st.sidebar:
-    for i, msg in enumerate(chat_history["display"][1:]):
-        st.write(msg)
-        # st.write(msg.type)
-        # st.write(msg.content)
-        st.divider()
 
-def process_stream(user_input: dict[str, list[dict[str, str]]] | Command) -> None:
-# def process_stream(user_input: str) -> None:
-
-    agent = st.session_state["agent"]
-    
-    events = agent.stream(
-        user_input,
-        config=st.session_state["config"],
-        # stream_mode="values",
-        debug=False
-    )
-
-    chat_history = get_session_history(st.session_state["session_id"])
-
-    for event in events:
-        for value in event.values():
-            for message in value.get("messages", []):
-
-                if isinstance(message, AIMessage):
-
-                    if len(message.content) > 0:
-                        st.chat_message("ai").write(message.content)
-                        chat_history["main"].append(AIMessage(content=message.content))
-                        chat_history["display"].append(AIMessage(content=message.content))
-
-                    if message.tool_calls:
-                        st.info(f"Tool call detected: {len(message.tool_calls)}")
-                        for tool_call in message.tool_calls:
-                            ui_request = {
-                                "name": tool_call["name"],
-                                "args": tool_call["args"],
-                                "id": tool_call["id"]
-                            }
-                            ai_question_in_tool = tool_call["args"].get('question',None)
-                            st.chat_message("ai").write(ai_question_in_tool)
-                            # chat_history.append(ToolMessage(content=ai_question_in_tool, tool_call_id=tool_call["id"]))
-                            # chat_history.append(AIMessage(content=ai_question_in_tool))
-                            chat_history["main"].append(ToolMessage(content=ai_question_in_tool, tool_call_id=tool_call["id"]))
-                            chat_history["display"].append(AIMessage(content=ai_question_in_tool, tool_call_id=tool_call["id"]))
-                            set_session_history(st.session_state["session_id"], chat_history) # render後に後で移動
-                            
-                            return ui_request
-                    else:
-                        return None
-
-# アプリ概要（GUI誘導型AIチャットボット）
+# Agentの呼び出し
 if prompt or (not st.session_state.user_turn):
     
     if prompt:
@@ -180,5 +129,4 @@ if prompt or (not st.session_state.user_turn):
         st.session_state.user_turn = False
         # 会話履歴の追加
         chat_history["main"].append(HumanMessage(content="ツールを利用してください。"))
-        # chat_history["display"].append(HumanMessage(content="ツールを利用してください。")) # 表示しない
         set_session_history(st.session_state["session_id"], chat_history)
