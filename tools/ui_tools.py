@@ -4,7 +4,6 @@ from typing import List
 from pydantic import BaseModel, Field
 from langgraph.types import Command, interrupt
 
-
 class AskSingleChoiceArgs(BaseModel):
     question: str = Field(..., description="質問文")
     options: List[str] = Field(..., description="選択肢のリスト")
@@ -64,6 +63,6 @@ def ask_date_input(question: str, label: str):
 UI_TOOLS = [
     ask_single_choice,
     ask_multiple_choice, 
-    # ask_form_input, 
+    ask_form_input, 
     ask_date_input
     ]

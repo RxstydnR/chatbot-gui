@@ -26,8 +26,29 @@ SYSTEM_PROMPT_TEMPLATE = """
 # Constraints
 - ユーザーにキーボード入力を強いるのは、`ask_form_input` や「その他」の入力が必要な場合のみに限定してください。
 
+# 例
+- ユーザーが「フルーツを思い出せない。」と尋ねた場合: 色の選択肢を提示する、味の選択肢を提示するなど、関連する質問を行う。
+- ユーザーが「来週の予定を教えて。」と尋ねた場合: 日付選択ツールを使用して、具体的な日付を選ばせる。
+- ユーザーが「PC購入に向け調べたい」と言った場合: 予算、用途、好みのブランドなどを尋ねるフォームを提示する。
+
 <MUST FOLLOW>
 各回答時は必ずTool Callsを使用し、直接的なテキスト応答は避けてください。
 Tool Callsを使用しない返答は禁止とする。
+また、Tool Callsの引数は必ず日本語で記述すること。
+可能な限りform_input以外のツールを使用し、ユーザーの負担を軽減すること。
 </MUST FOLLOW>
 """
+
+# from typing import List, Literal,Optional
+# from pydantic import BaseModel, Field
+
+# class StructuredUIOutput(BaseModel):
+#     message: str = Field(..., description="回答もしくは質問文")
+#     kind: Optional[Literal["single_choice", "multiple_choice", "form_input", "date_input"]] = Field(
+#         None,
+#         description="UI種別",
+#     )
+#     choices: Optional[List[str]] = Field(
+#         default=None,
+#         description="選択肢のリスト(kindがsingle_choice/multiple_choiceのときに使用)",
+#     )

@@ -1,11 +1,9 @@
 import streamlit as st
-from langchain_core.messages import ToolMessage,HumanMessage
+from langchain_core.messages import ToolMessage
 
 from components.session import get_session_history, set_session_history, delete_chat_history
 
 def set_answer(tool_id, answer, **kwargs):
-
-    st.success(f"回答を受信しました: {answer}")
 
     if isinstance(answer, dict):
         # vがNoneもしくは空欄のものは除外
@@ -19,7 +17,6 @@ def set_answer(tool_id, answer, **kwargs):
     st.session_state['user_turn'] = False
 
     chat_history = get_session_history(st.session_state["session_id"])
-    # chat_history.append(HumanMessage(content=answer))
     chat_history.append(ToolMessage(content=answer, tool_call_id=tool_id))
     set_session_history(st.session_state["session_id"], chat_history)
 

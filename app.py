@@ -45,6 +45,7 @@ if "config" not in st.session_state:
 
 with st.sidebar:
     st.button("Delete Chat History", on_click=delete_chat_history, args=(st.session_state["session_id"],))
+    st.button("Clear All Sessions", on_click=lambda: st.session_state.clear())
 
 
 # messageが0個ならsystempromptを先頭に追加
@@ -67,6 +68,12 @@ if len(chat_history) > 0:
         if message.content:
             with st.chat_message(role):
                 st.write(message.content)
+
+        if hasattr(message, "tool_calls"):
+            for tool_call in message.tool_calls:
+                ai_question_in_tool = tool_call["args"].get('question',None)
+                if ai_question_in_tool:
+                    st.chat_message("ai").write(ai_question_in_tool)
 
 with st.sidebar:
     for i, msg in enumerate(chat_history[1:]):
@@ -100,7 +107,6 @@ def process_stream(user_input: dict[str, list[dict[str, str]]] | Command) -> Non
                         chat_history.append(AIMessage(content=message.content))
 
                     if message.tool_calls:
-                        st.info(len(message.tool_calls))
                         for tool_call in message.tool_calls:
                             ui_request = {
                                 "name": tool_call["name"],
@@ -111,7 +117,7 @@ def process_stream(user_input: dict[str, list[dict[str, str]]] | Command) -> Non
                             st.chat_message("ai").write(ai_question_in_tool)
                             # chat_history.append(ToolMessage(content=ai_question_in_tool, tool_call_id=tool_call["id"]))
                             # chat_history.append(AIMessage(content=ai_question_in_tool))
-                            # chat_history.append(ToolMessage(content="", tool_call_id=tool_call["id"]))
+                            chat_history.append(ToolMessage(content=ai_question_in_tool, tool_call_id=tool_call["id"]))
                             set_session_history(st.session_state["session_id"], chat_history) # render後に後で移動
                             
                             return ui_request
@@ -129,10 +135,9 @@ if (prompt := st.chat_input("メッセージを入力...")) or (not st.session_s
         # 会話履歴の追加
         chat_history.append(HumanMessage(content=prompt))
         set_session_history(st.session_state["session_id"], chat_history)
-        ui_request = process_stream({"messages":[chat_history[-1]]})
-    else:
-        # st.info("waiting for user input via tool...")
-        ui_request = process_stream({"messages":[]})
+    
+    # Userの返答はToolMessageとして既にchat_historyに追加されている
+    ui_request = process_stream({"messages":[chat_history[-1]]})
 
     if ui_request:
         st.session_state.user_turn = True
