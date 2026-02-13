@@ -1,8 +1,6 @@
-from langchain_core.tools import tool
 from typing import List
-
 from pydantic import BaseModel, Field
-from langgraph.types import Command, interrupt
+from langchain_core.tools import tool
 
 class AskSingleChoiceArgs(BaseModel):
     question: str = Field(..., description="質問文")

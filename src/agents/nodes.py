@@ -1,7 +1,7 @@
 from langchain_openai import ChatOpenAI
 
-from agents.state import State
-from tools.ui_tools import UI_TOOLS
+from src.agents.state import State
+from src.agents.ui_tools import UI_TOOLS
 
 def agent_node(state: State):
 

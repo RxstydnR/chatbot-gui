@@ -29,7 +29,6 @@ def process_stream(user_input: dict[str, list[dict[str, str]]] | Command) -> Non
                         chat_history["display"].append(AIMessage(content=message.content))
 
                     if message.tool_calls:
-                        st.info(f"Tool call detected: {len(message.tool_calls)}")
                         for tool_call in message.tool_calls:
                             ui_request = {
                                 "name": tool_call["name"],

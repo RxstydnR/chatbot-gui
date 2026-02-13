@@ -1,6 +1,6 @@
 import streamlit as st
-from styles.fadein import CHAR_FADEIN_ANIMATION_CSS
-from styles.background import MAIN_APP_CONTENTS_CSS, CHAT_MESSAGE_CSS, SIDEBAR_CSS
+from src.styles.fadein import CHAR_FADEIN_ANIMATION_CSS
+from src.styles.background import MAIN_APP_CONTENTS_CSS, CHAT_MESSAGE_CSS, SIDEBAR_CSS
 
 def load_css():    
     st.markdown("""

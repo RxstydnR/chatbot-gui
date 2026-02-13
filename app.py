@@ -4,8 +4,9 @@ from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage,ToolMessage,SystemMessage, AIMessage
 from langgraph.types import Command
 
-from agents.graph import create_graph
-from agents.prompt import SYSTEM_PROMPT_TEMPLATE
+from src.agents.graph import create_graph
+from src.agents.prompt import SYSTEM_PROMPT_TEMPLATE
+from src.styles.style_loader import load_css
 from components.renderer import render_gui_parts
 from components.session import get_session_history, set_session_history, delete_chat_history
 from components.init_page import render_init_page, SUGGESTIONS
@@ -17,7 +18,6 @@ load_dotenv()
 st.set_page_config(page_title="GUI Agent", layout="centered")
 
 # CSS
-from styles.style_loader import load_css
 load_css()
 
 # セッション初期化
