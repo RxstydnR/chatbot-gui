@@ -46,8 +46,22 @@ if "user_first_interaction" not in st.session_state:
 
 
 with st.sidebar:
-    st.button("Delete Chat History", on_click=delete_chat_history, args=(st.session_state["session_id"],))
-    st.button("Clear All Sessions", on_click=lambda: st.session_state.clear())
+
+    st.space("small")
+    
+    st.button(
+        "Delete Chat History\n",
+        on_click=delete_chat_history, 
+        args=(st.session_state["session_id"],),
+        width="stretch",
+        type="primary"
+    )
+    st.button(
+        "Clear All Sessions", 
+        on_click=lambda: st.session_state.clear(),
+        width="stretch",
+        type="secondary"
+    )
 
 
 # 初期画面用の表示判定
@@ -110,7 +124,6 @@ if len(chat_history["display"]) > 0:
 if prompt or (not st.session_state.user_turn):
     
     if prompt:
-        st.info("prompt received")
 
         # ユーザの入力を表示する
         st.chat_message("user").write(prompt)
