@@ -1,16 +1,14 @@
-# Tool callでHuman in the loopした場合は聴いた場合は、Tool callで返さないといけない
-# それがstreamlitと相性が悪いんだよなぁ...。
-
 import uuid
 import streamlit as st
 from dotenv import load_dotenv
-from langchain_core.messages import HumanMessage, ToolMessage,SystemMessage, AIMessage
+from langchain_core.messages import HumanMessage,ToolMessage,SystemMessage, AIMessage
 from langgraph.types import Command
 
 from agents.graph import create_graph
 from agents.prompt import SYSTEM_PROMPT_TEMPLATE
 from components.renderer import render_gui_parts
 from components.session import get_session_history, set_session_history, delete_chat_history
+from components.init_page import render_init_page, SUGGESTIONS
 
 # .envファイルから環境変数を読み込む
 load_dotenv()
@@ -42,13 +40,43 @@ if "config" not in st.session_state:
             "thread_id": st.session_state["thread_id"]
         }
     }
+if "user_first_interaction" not in st.session_state:
+    st.session_state["user_first_interaction"] = False
+
 
 with st.sidebar:
     st.button("Delete Chat History", on_click=delete_chat_history, args=(st.session_state["session_id"],))
     st.button("Clear All Sessions", on_click=lambda: st.session_state.clear())
 
 
-# messageが0個ならsystempromptを先頭に追加
+# 初期画面用の表示判定
+user_just_asked_initial_question = (
+    "initial_question" in st.session_state and st.session_state.initial_question
+)
+user_just_clicked_suggestion = (
+    "selected_suggestion" in st.session_state and st.session_state.selected_suggestion
+)
+if user_just_asked_initial_question or user_just_clicked_suggestion:
+    st.session_state["user_first_interaction"] = True
+
+# Show a different UI when the user hasn't asked a question yet.
+if not st.session_state["user_first_interaction"]:
+    render_init_page()
+    st.stop()
+else:
+    st.session_state["user_first_interaction"] = True
+
+# ユーザの入力受付
+prompt = st.chat_input("メッセージを入力...")
+if not prompt:
+
+    if user_just_asked_initial_question:
+        prompt = st.session_state.initial_question
+    
+    if user_just_clicked_suggestion:
+        prompt = SUGGESTIONS[st.session_state.selected_suggestion]
+
+# システムプロンプトの追加
 chat_history = get_session_history(st.session_state["session_id"])
 if len(chat_history["main"]) == 0:
     chat_history["main"].append(SystemMessage(content=SYSTEM_PROMPT_TEMPLATE))
@@ -76,6 +104,7 @@ if len(chat_history["display"]) > 0:
                 if ai_question_in_tool:
                     st.chat_message("ai").write(ai_question_in_tool)
 
+# debug用
 with st.sidebar:
     for i, msg in enumerate(chat_history["display"][1:]):
         st.write(msg)
@@ -127,9 +156,9 @@ def process_stream(user_input: dict[str, list[dict[str, str]]] | Command) -> Non
                             return ui_request
                     else:
                         return None
-                            
 
-if (prompt := st.chat_input("メッセージを入力...")) or (not st.session_state.user_turn):
+# アプリ概要（GUI誘導型AIチャットボット）
+if prompt or (not st.session_state.user_turn):
     
     if prompt:
         st.info("prompt received")
