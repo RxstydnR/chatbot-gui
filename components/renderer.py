@@ -1,5 +1,5 @@
 import streamlit as st
-from langchain_core.messages import ToolMessage
+from langchain_core.messages import ToolMessage,HumanMessage,SystemMessage, AIMessage
 
 from components.session import get_session_history, set_session_history, delete_chat_history
 
@@ -17,7 +17,8 @@ def set_answer(tool_id, answer, **kwargs):
     st.session_state['user_turn'] = False
 
     chat_history = get_session_history(st.session_state["session_id"])
-    chat_history.append(ToolMessage(content=answer, tool_call_id=tool_id))
+    chat_history["main"].append(ToolMessage(content=answer, tool_call_id=tool_id))
+    chat_history["display"].append(HumanMessage(content=answer, tool_call_id=tool_id))
     set_session_history(st.session_state["session_id"], chat_history)
 
 
@@ -99,7 +100,7 @@ def render_gui_parts(ui_request):
                 }
                 set_answer(tool_id, res)
 
-            res = {field: st.text_input(field) for field in args["fields"]}
+            # res = {field: st.text_input(field) for field in args["fields"]}
             for field in args["fields"]:
                 st.text_input(field, key=f"form_{field}")
 

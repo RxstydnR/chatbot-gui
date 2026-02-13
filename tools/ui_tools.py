@@ -37,7 +37,7 @@ def ask_multiple_choice(question: str, options: List[str], allow_other: bool = F
 
 class AskFormInputArgs(BaseModel):
     question: str = Field(..., description="フォームのタイトル(質問文)")
-    fields: List[str] = Field(..., description="入力項目名のリスト")
+    fields: List[str] = Field(..., description="入力項目名のリスト(2-3個程度推奨)")
 
 @tool(
     description="アカウント情報などの複数項目を一度に入力させる。fieldsは項目名のリスト。",

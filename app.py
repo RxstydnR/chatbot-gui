@@ -50,20 +50,21 @@ with st.sidebar:
 
 # messageが0個ならsystempromptを先頭に追加
 chat_history = get_session_history(st.session_state["session_id"])
-if len(chat_history) == 0:
-    chat_history.append(SystemMessage(content=SYSTEM_PROMPT_TEMPLATE))
+if len(chat_history["main"]) == 0:
+    chat_history["main"].append(SystemMessage(content=SYSTEM_PROMPT_TEMPLATE))
+    chat_history["display"].append(SystemMessage(content=SYSTEM_PROMPT_TEMPLATE))
     set_session_history(st.session_state["session_id"], chat_history)
 
 # 履歴表示
 chat_history = get_session_history(st.session_state["session_id"])
-if len(chat_history) > 0:
-    for message in chat_history:
+if len(chat_history["display"]) > 0:
+    for message in chat_history["display"]:
         if isinstance(message, (HumanMessage, ToolMessage)):
             role = "user" 
         elif isinstance(message, SystemMessage):
             continue
         else:
-            role = "assistant"
+            role = "ai"
 
         if message.content:
             with st.chat_message(role):
@@ -76,7 +77,7 @@ if len(chat_history) > 0:
                     st.chat_message("ai").write(ai_question_in_tool)
 
 with st.sidebar:
-    for i, msg in enumerate(chat_history[1:]):
+    for i, msg in enumerate(chat_history["display"][1:]):
         st.write(msg)
         # st.write(msg.type)
         # st.write(msg.content)
@@ -104,7 +105,8 @@ def process_stream(user_input: dict[str, list[dict[str, str]]] | Command) -> Non
 
                     if len(message.content) > 0:
                         st.chat_message("ai").write(message.content)
-                        chat_history.append(AIMessage(content=message.content))
+                        chat_history["main"].append(AIMessage(content=message.content))
+                        chat_history["display"].append(AIMessage(content=message.content))
 
                     if message.tool_calls:
                         for tool_call in message.tool_calls:
@@ -114,10 +116,11 @@ def process_stream(user_input: dict[str, list[dict[str, str]]] | Command) -> Non
                                 "id": tool_call["id"]
                             }
                             ai_question_in_tool = tool_call["args"].get('question',None)
-                            st.chat_message("ai").write(ai_question_in_tool)
+                            st.chat_message("ai").write("TOOL: "+ai_question_in_tool)
                             # chat_history.append(ToolMessage(content=ai_question_in_tool, tool_call_id=tool_call["id"]))
                             # chat_history.append(AIMessage(content=ai_question_in_tool))
-                            chat_history.append(ToolMessage(content=ai_question_in_tool, tool_call_id=tool_call["id"]))
+                            chat_history["main"].append(ToolMessage(content="TOOL: "+ai_question_in_tool, tool_call_id=tool_call["id"]))
+                            chat_history["display"].append(AIMessage(content="TOOL: "+ai_question_in_tool, tool_call_id=tool_call["id"]))
                             set_session_history(st.session_state["session_id"], chat_history) # render後に後で移動
                             
                             return ui_request
@@ -133,11 +136,12 @@ if (prompt := st.chat_input("メッセージを入力...")) or (not st.session_s
         # ユーザの入力を表示する
         st.chat_message("user").write(prompt)
         # 会話履歴の追加
-        chat_history.append(HumanMessage(content=prompt))
+        chat_history["main"].append(HumanMessage(content=prompt))
+        chat_history["display"].append(HumanMessage(content=prompt))
         set_session_history(st.session_state["session_id"], chat_history)
     
     # Userの返答はToolMessageとして既にchat_historyに追加されている
-    ui_request = process_stream({"messages":[chat_history[-1]]})
+    ui_request = process_stream({"messages":[chat_history["main"][-1]]})
 
     if ui_request:
         st.session_state.user_turn = True
@@ -145,5 +149,6 @@ if (prompt := st.chat_input("メッセージを入力...")) or (not st.session_s
     else:
         st.session_state.user_turn = False
         # 会話履歴の追加
-        chat_history.append(HumanMessage(content="ツールを利用してください。"))
+        chat_history["main"].append(HumanMessage(content="ツールを利用してください。"))
+        # chat_history["display"].append(HumanMessage(content="ツールを利用してください。")) # 表示しない
         set_session_history(st.session_state["session_id"], chat_history)
