@@ -11,7 +11,6 @@ from tools.ui_tools import UI_TOOLS
 
 def create_graph():
 
-    # 通常は以下だが、
     graph_builder = StateGraph(State)
     tool_node = ToolNode(tools=UI_TOOLS)
     graph_builder.add_node("agent", agent_node)
@@ -21,8 +20,6 @@ def create_graph():
     graph_builder.set_entry_point("agent")
     graph = graph_builder.compile(
         checkpointer=MemorySaver(),
-        interrupt_before=["tools"], # agent node
-        # interrupt_after=["tools"], # tool node
-        # interrupt_after=[tool.name for tool in UI_TOOLS]
+        interrupt_before=["tools"],
     )   
     return graph
