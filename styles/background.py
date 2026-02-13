@@ -134,8 +134,8 @@ CHAT_MESSAGE_CSS = """
 SIDEBAR_CSS = """      
 <style>                
     [data-testid="stSidebar"][aria-expanded="true"]{
-        min-width: 350px;
-        max-width: 350px;
+        min-width: 250px;
+        max-width: 250px;
     }
     [data-testid="stSidebar"] {
         background-color: rgb(240,244,250) !important;
